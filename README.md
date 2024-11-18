@@ -1,1 +1,1 @@
-# nvim-abbrev-expand
+# abbrev-expand.nvim
