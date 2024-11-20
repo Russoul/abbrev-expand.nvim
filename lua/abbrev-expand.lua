@@ -52,12 +52,12 @@ end
 -- \eta<C-]>  ==> η
 -- Theta<C-]>  ==> ϴ
 -- Th\eta<C-]> ==> Thη
-function M.expand()
-  local line_txt = vim.fn.getline('.')
-  local buf = vim.fn.getpos('.')[1]
-  local line = vim.fn.getpos('.')[2]
-  local col = vim.fn.getpos('.')[3]
-  local offset = vim.fn.getpos('.')[4]
+function M.expand(expr)
+  local line_txt = vim.fn.getline(expr)
+  local buf = vim.fn.getpos(expr)[1]
+  local line = vim.fn.getpos(expr)[2]
+  local col = vim.fn.getpos(expr)[3]
+  local offset = vim.fn.getpos(expr)[4]
   if not line_txt or not col then
     vim.fn.echom("Can't expand: getline | getpos returned nil")
   else
