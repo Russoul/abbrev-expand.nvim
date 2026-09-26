@@ -23,12 +23,12 @@ require('abbrev-expand').setup {
  }
 }
 
-vim.api.nvim_set_keymap('i', '<C-]>', '<Left><C-o>:lua require("abbrev-expand").expand(".")<CR><Right>',
-                        {noremap = true, silent = true})
+vim.keymap.set('i', '<C-]>', function() return '<Left><C-o>' .. require('abbrev-expand').expand_repeatable() .. '<Right>' end,
+               {expr = true})
 vim.keymap.set('n', '<C-]>', require('abbrev-expand').expand_repeatable, {expr = true})
 vim.keymap.set('x', '<C-]>', function() return '<Esc>`>' .. require('abbrev-expand').expand_repeatable() end,
                {expr = true})
 
 ```
 
-Expansions made in normal and visual mode can be repeated with `.`: after expanding one abbreviation, put the cursor on the last character of another and press `.` to expand it too. Insert-mode expansions can't be repeated this way, because `.` repeats the text you typed.
+Expansions can be repeated with `.`: after expanding one abbreviation, put the cursor on the last character of another and press `.` to expand it too. For an insert-mode expansion, this works when you leave insert mode right after `<C-]>`; if you type more text first, `.` repeats that text instead, as usual in Vim.
