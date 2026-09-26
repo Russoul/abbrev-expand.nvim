@@ -70,6 +70,18 @@ function M.expand(expr)
   end
 end
 
+-- Called by g@: '[ is on the last character of the abbreviation.
+function M.operatorfunc()
+  M.expand("'[")
+end
+
+-- For use in an expr mapping. Expands the abbreviation ending under the cursor
+-- via g@l, which makes the expansion repeatable with '.'.
+function M.expand_repeatable()
+  vim.o.operatorfunc = "v:lua.require'abbrev-expand'.operatorfunc"
+  return 'g@l'
+end
+
 function M.setup(params)
   M.delim = params.delim or "\\"
   M.map = params.map or {}
