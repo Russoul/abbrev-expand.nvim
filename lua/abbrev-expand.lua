@@ -70,6 +70,27 @@ function M.expand(expr)
   end
 end
 
+-- Same as `expand`, but for the current terminal buffer in terminal mode.
+-- A terminal buffer only mirrors the screen of the program running in it, so
+-- instead of editing the buffer, the abbreviation is erased by sending
+-- backspaces to the program and the substitution is typed in its place.
+function M.expand_term()
+  local chan = vim.bo.channel
+  if chan == 0 then
+    return
+  end
+  -- In terminal mode the window cursor tracks the terminal cursor
+  local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+  local line_txt = vim.api.nvim_buf_get_lines(0, line - 1, line, false)[1]
+  local up_to_cursor = line_txt:sub(1, col)
+  local to_remove_len, subst = find_longest_match(up_to_cursor)
+  if to_remove_len then
+    -- The program erases characters, not bytes
+    local n_chars = vim.fn.strchars(up_to_cursor:sub(-to_remove_len))
+    vim.api.nvim_chan_send(chan, string.rep("\127", n_chars) .. subst)
+  end
+end
+
 function M.setup(params)
   M.delim = params.delim or "\\"
   M.map = params.map or {}

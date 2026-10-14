@@ -29,3 +29,11 @@ vim.api.nvim_set_keymap('x', '<C-]>', ':lua require("abbrev-expand").expand("\'>
                         {noremap = true, silent = true})
 
 ```
+
+To also expand in terminal buffers (shells, REPLs, fzf prompts, ...), map `<C-]>` in terminal mode:
+
+```lua
+vim.keymap.set('t', '<C-]>', function() require("abbrev-expand").expand_term() end)
+```
+
+The text before the terminal cursor is read off the screen, and the abbreviation is replaced by sending backspaces followed by the expansion to the running program, so this works with any program that treats `DEL` as backspace.
