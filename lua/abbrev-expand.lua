@@ -48,11 +48,9 @@ local function find_longest_match(txt)
   end
 end
 
--- eta<C-]>   ==> η
--- \eta<C-]>  ==> η
--- Theta<C-]>  ==> ϴ
--- Th\eta<C-]> ==> Thη
-function M.expand(expr)
+-- Expands the abbreviation ending at position `expr` (see `getpos()`) by
+-- editing the buffer directly
+local function expand_at(expr)
   local line_txt = vim.fn.getline(expr)
   local buf = vim.fn.getpos(expr)[1]
   local line = vim.fn.getpos(expr)[2]
@@ -67,6 +65,46 @@ function M.expand(expr)
       vim.api.nvim_buf_set_text(buf, line - 1, col - to_remove_len, line - 1, col, {subst})
       vim.fn.setpos('.', {buf, line, col - to_remove_len + #subst, offset})
     end
+  end
+end
+
+-- Expands the abbreviation at the end of `up_to_cursor` the way the user would:
+-- by erasing it with backspaces and typing the substitution in its place.
+-- That keeps the expansion a part of the insertion for undo and `.`.
+local function retype(up_to_cursor)
+  local to_remove_len, subst = find_longest_match(up_to_cursor)
+  if to_remove_len then
+    -- Backspace erases characters, not bytes
+    local n_chars = vim.fn.strchars(up_to_cursor:sub(-to_remove_len))
+    -- With the 'i' flag, each call puts its keys in front of the pending input,
+    -- so the backspaces, fed last, come first. The substitution is escaped: its
+    -- UTF-8 bytes may include 0x80, which Neovim would read as a key code.
+    vim.api.nvim_feedkeys(subst, 'in', true)
+    vim.api.nvim_feedkeys(vim.keycode('<BS>'):rep(n_chars), 'in', false)
+  end
+end
+
+-- Expands the abbreviation before the cursor in insert, command-line and
+-- terminal modes. If `expr` is given, expands the abbreviation ending at that
+-- position (see `getpos()`) instead, e.g. "'>" for the end of the visual selection.
+--
+-- eta<C-]>   ==> η
+-- \eta<C-]>  ==> η
+-- Theta<C-]>  ==> ϴ
+-- Th\eta<C-]> ==> Thη
+function M.expand(expr)
+  if expr then
+    expand_at(expr)
+    return
+  end
+  local mode = vim.api.nvim_get_mode().mode
+  if mode == 't' then
+    M.expand_term()
+  elseif mode:sub(1, 1) == 'c' then
+    retype(vim.fn.getcmdline():sub(1, vim.fn.getcmdpos() - 1))
+  elseif mode:sub(1, 1) == 'i' then
+    local col = vim.api.nvim_win_get_cursor(0)[2]
+    retype(vim.api.nvim_get_current_line():sub(1, col))
   end
 end
 

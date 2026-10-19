@@ -6,7 +6,7 @@
 
 ## Setup
 
-Setup used in the demo (press `<C-]>` at the end of an abbreviation in insert mode and anywhere in visual mode to expand):
+Setup used in the demo (press `<C-]>` at the end of an abbreviation in insert, command-line or terminal mode, or anywhere in visual mode to expand):
 
 ```lua
 require('abbrev-expand').setup {
@@ -23,17 +23,12 @@ require('abbrev-expand').setup {
  }
 }
 
-vim.api.nvim_set_keymap('i', '<C-]>', '<Left><C-o>:lua require("abbrev-expand").expand(".")<CR><Right>',
-                        {noremap = true, silent = true})
+vim.keymap.set({'i', 'c', 't'}, '<C-]>', function() require("abbrev-expand").expand() end)
 vim.api.nvim_set_keymap('x', '<C-]>', ':lua require("abbrev-expand").expand("\'>")<CR>',
                         {noremap = true, silent = true})
 
 ```
 
-To also expand in terminal buffers (shells, REPLs, fzf prompts, ...), map `<C-]>` in terminal mode:
+In insert and command-line modes, the abbreviation is erased with backspaces and the expansion is typed in its place, so undo and `.` treat it as part of what you typed.
 
-```lua
-vim.keymap.set('t', '<C-]>', function() require("abbrev-expand").expand_term() end)
-```
-
-The text before the terminal cursor is read off the screen, and the abbreviation is replaced by sending backspaces followed by the expansion to the running program, so this works with any program that treats `DEL` as backspace.
+In terminal buffers (shells, REPLs, fzf prompts, ...), the text before the terminal cursor is read off the screen, and the abbreviation is replaced by sending backspaces followed by the expansion to the running program, so this works with any program that treats `DEL` as backspace.
